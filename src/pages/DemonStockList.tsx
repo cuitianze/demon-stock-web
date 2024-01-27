@@ -1,5 +1,5 @@
 import {useState, useEffect} from 'react';
-import {DatePicker} from 'antd';
+import {Checkbox, DatePicker} from 'antd';
 import type {DatePickerProps} from 'antd';
 import {SheetComponent} from '@antv/s2-react';
 import '@antv/s2-react/dist/style.min.css';
@@ -15,10 +15,20 @@ const s2Options = {
 
 function DemonStockList() {
   const [dataList, setDataList] = useState<any[]>([]);
+  const [filterDataList, setFilterDataList] = useState<any[]>([]);
   const [stateDate, setStateDate] = useState<string>();
 
   const onDateChange: DatePickerProps['onChange'] = (date, dateString) => {
     setStateDate(dateString);
+  };
+
+  const onFilterChange = (e: any) => {
+    const checked = e.target.checked;
+    if (!checked) {
+      setFilterDataList(dataList);
+    } else {
+      setFilterDataList(dataList.filter(item => item['连板数'] !== 1));
+    }
   };
 
   useEffect(() => {
@@ -41,6 +51,10 @@ function DemonStockList() {
 
     return () => {};
   }, [stateDate]);
+
+  useEffect(() => {
+    setFilterDataList(dataList);
+  }, [dataList]);
 
   const s2DataConfig = {
     fields: {
@@ -154,7 +168,7 @@ function DemonStockList() {
         },
       },
     ],
-    data: dataList,
+    data: filterDataList,
   };
 
   return (
@@ -176,6 +190,8 @@ function DemonStockList() {
         }}>
         <DatePicker onChange={onDateChange} />
         &nbsp; 涨停数: {dataList.length}
+        &nbsp; &nbsp;
+        <Checkbox onChange={onFilterChange}>过滤一板</Checkbox>
       </div>
       <div>
         <SheetComponent
