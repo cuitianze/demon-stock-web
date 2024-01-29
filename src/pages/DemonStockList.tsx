@@ -34,7 +34,7 @@ function DemonStockList() {
   useEffect(() => {
     if (!stateDate) return;
     http
-      .get(`http://localhost:7001/api/stock_list?date=${stateDate}`)
+      .get(`/api/stock_list?date=${stateDate}`)
       .then(data => {
         // handle success
         if (data instanceof Array) {
