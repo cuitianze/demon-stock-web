@@ -1,35 +1,61 @@
 import {useState, useEffect} from 'react';
 import {Checkbox, DatePicker} from 'antd';
-import type {DatePickerProps} from 'antd';
+import type {DatePickerProps, GetProp} from 'antd';
 import {SheetComponent} from '@antv/s2-react';
 import '@antv/s2-react/dist/style.min.css';
+import dayjs from 'dayjs';
 import http from '../utils/http';
 
-const s2Options = {
-  width: 2500,
-  height: 1200,
-  interaction: {
-    linkFields: ['股票代码'],
-  },
+// date 代表指定的日期，格式：2018-09-27
+// day 传-1表始前一天，传1表始后一天
+// JS获取指定日期的前一天，后一天
+const getNextDate = (date: string, day: number) => {
+  const dd = new Date(date);
+  dd.setDate(dd.getDate() + day);
+  const y = dd.getFullYear();
+  const m =
+    dd.getMonth() + 1 < 10 ? '0' + (dd.getMonth() + 1) : dd.getMonth() + 1;
+  const d = dd.getDate() < 10 ? '0' + dd.getDate() : dd.getDate();
+  return y + '-' + m + '-' + d;
 };
 
 function DemonStockList() {
-  const [dataList, setDataList] = useState<any[]>([]);
   const [filterDataList, setFilterDataList] = useState<any[]>([]);
+  const [stateFilterOptions, setStateFilterOptions] = useState<number[]>(
+    JSON.parse(localStorage.getItem('stateFilterOptions') || '[]'),
+  );
   const [stateDate, setStateDate] = useState<string>();
+  const [stateDataList, setStateDataList] = useState<any[]>([]);
+  const [stateCompareDate, setStateCompareDate] = useState<string>();
+  const [stateCompareDataList, setStateCompareDataList] = useState<any[]>([]);
+  const [stateCompareStockCodeList, setStateCompareStockCodeList] = useState<
+    string[]
+  >([]);
 
   const onDateChange: DatePickerProps['onChange'] = (date, dateString) => {
     setStateDate(dateString);
   };
-
-  const onFilterChange = (e: any) => {
-    const checked = e.target.checked;
-    if (!checked) {
-      setFilterDataList(dataList);
-    } else {
-      setFilterDataList(dataList.filter(item => item['连板数'] !== 1));
-    }
+  const onCompareDateChange: DatePickerProps['onChange'] = (
+    date,
+    dateString,
+  ) => {
+    setStateCompareDate(dateString);
   };
+
+  const onFilterChange: GetProp<typeof Checkbox.Group, 'onChange'> = (
+    checkedValues: any[],
+  ) => {
+    setStateFilterOptions(checkedValues);
+    localStorage.setItem('stateFilterOptions', JSON.stringify(checkedValues));
+  };
+
+  useEffect(() => {
+    if (localStorage.getItem('stateFilterOptions')) {
+      setStateFilterOptions(
+        JSON.parse(localStorage.getItem('stateFilterOptions') || '[]'),
+      );
+    }
+  }, []);
 
   useEffect(() => {
     if (!stateDate) return;
@@ -38,7 +64,7 @@ function DemonStockList() {
       .then(data => {
         // handle success
         if (data instanceof Array) {
-          setDataList(data);
+          setStateDataList(data);
         }
       })
       .catch(function (error) {
@@ -53,8 +79,96 @@ function DemonStockList() {
   }, [stateDate]);
 
   useEffect(() => {
-    setFilterDataList(dataList);
-  }, [dataList]);
+    if (!stateCompareDate) return;
+    http
+      .get(`/api/stock_list?date=${stateCompareDate}`)
+      .then(data => {
+        // handle success
+        if (data instanceof Array) {
+          setStateCompareDataList(data);
+        }
+      })
+      .catch(function (error) {
+        // handle error
+        console.log(error);
+      })
+      .finally(function () {
+        // always executed
+      });
+
+    return () => {};
+  }, [stateCompareDate]);
+
+  useEffect(() => {
+    setFilterDataList(
+      stateDataList.filter(item => {
+        if (!stateFilterOptions.length) return true;
+        if (item['连板数'] >= 6) {
+          return stateFilterOptions.includes(6);
+        }
+        return stateFilterOptions.includes(item['连板数']);
+      }),
+    );
+  }, [stateDataList, stateFilterOptions]);
+
+  // 对比数据
+  useEffect(() => {
+    if (!stateDataList.length || !stateCompareDataList.length) {
+      setStateCompareStockCodeList([]);
+      return;
+    }
+    const compareStockCodeList = stateCompareDataList.map(compareDataItem => {
+      return compareDataItem['股票代码'];
+    });
+    setStateCompareStockCodeList(compareStockCodeList);
+  }, [stateDataList, stateCompareDataList]);
+
+  const numberOptions = [
+    {label: '1板', value: 1},
+    {label: '2板', value: 2},
+    {label: '3板', value: 3},
+    {label: '4板', value: 4},
+    {label: '5板', value: 5},
+    {label: '6板及以上', value: 6},
+  ];
+
+  const s2Options = {
+    width: 2500,
+    height: 1200,
+    interaction: {
+      linkFields: ['股票代码'],
+    },
+    conditions: {
+      background: [
+        {
+          field: new RegExp(
+            '涨停原因|涨停原因个股涨停个数|股票名称|股票代码|板块|连板数|涨停时间_D|融资融券|回封|振幅|连板标签|封单_D|最大封单_D|主力净额_D|主力买入_D|主力卖出_D|成交额_D|实际流通_D|实际换手',
+          ),
+          mapping(value: any, record: any) {
+            if (
+              record.query &&
+              record.query['股票代码'] &&
+              stateCompareStockCodeList.length
+              // &&
+              // !stateCompareStockCodeList.includes(record.query['股票代码'])
+            ) {
+              if (
+                !stateCompareStockCodeList.includes(record.query['股票代码'])
+              ) {
+                return {
+                  fill: '#e3f1e5',
+                };
+              } else {
+                return {
+                  fill: '#f8dddd',
+                };
+              }
+            }
+          },
+        },
+      ],
+    },
+  };
 
   const s2DataConfig = {
     fields: {
@@ -188,10 +302,68 @@ function DemonStockList() {
           backgroundColor: 'white',
           zIndex: 888,
         }}>
-        <DatePicker onChange={onDateChange} />
-        &nbsp; 涨停数: {dataList.length}
-        &nbsp; &nbsp;
-        <Checkbox onChange={onFilterChange}>过滤一板</Checkbox>
+        <DatePicker
+          value={stateDate ? dayjs(stateDate, 'YYYY-MM-DD') : dayjs(new Date())}
+          onChange={onDateChange}
+        />
+        &nbsp;
+        <Checkbox.Group
+          options={numberOptions}
+          defaultValue={stateFilterOptions}
+          onChange={onFilterChange}
+        />
+        涨停数：{filterDataList.length}
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: '50%',
+            transform: 'translateX(-50%)',
+          }}>
+          <span
+            style={{
+              cursor: 'pointer',
+            }}
+            onClick={() => {
+              if (stateDate) {
+                setStateDate(getNextDate(stateDate, -1));
+              }
+              if (stateCompareDate) {
+                setStateCompareDate(getNextDate(stateCompareDate, -1));
+              }
+            }}>
+            前一天
+          </span>
+          &nbsp; | &nbsp;
+          <span
+            style={{
+              cursor: 'pointer',
+            }}
+            onClick={() => {
+              if (stateDate) {
+                setStateDate(getNextDate(stateDate, 1));
+              }
+              if (stateCompareDate) {
+                setStateCompareDate(getNextDate(stateCompareDate, 1));
+              }
+            }}>
+            后一天
+          </span>
+        </div>
+        <div
+          style={{
+            float: 'right',
+          }}>
+          <span>对比日期：</span>
+          <DatePicker
+            value={
+              stateCompareDate
+                ? dayjs(stateCompareDate, 'YYYY-MM-DD')
+                : dayjs(new Date())
+            }
+            onChange={onCompareDateChange}
+          />
+        </div>
       </div>
       <div>
         <SheetComponent
