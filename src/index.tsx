@@ -18,7 +18,7 @@ root.render(
   <React.StrictMode>
     <ConfigProvider locale={locale}>
     {
-      btoa(localStorage.getItem('RICH')) === 'U3VwZXJNYW5QS1la' ?
+      (btoa(localStorage.getItem('RICH')) || '') === 'U3VwZXJNYW5QS1la' ?
       <App />
       : <div>无效访问</div>
     }
