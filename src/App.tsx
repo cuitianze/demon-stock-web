@@ -32,7 +32,7 @@ function App() {
                     type="password"
                     placeholder="Password (confirm)" 
                     onBlur={(e) => {
-                      localStorage.setItem('RICH', e.target.value);
+                      localStorage.setItem(RICH_PWD, 'SuperMan' + e.target.value);
                       location.reload();
                     }}
                   />
