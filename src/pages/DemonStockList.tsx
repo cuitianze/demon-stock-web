@@ -142,7 +142,7 @@ function DemonStockList() {
       background: [
         {
           field: new RegExp(
-            '涨停原因|涨停原因个股涨停个数|股票名称|股票代码|板块|连板数|涨停时间_D|融资融券|回封|振幅|连板标签|封单_D|最大封单_D|主力净额_D|主力买入_D|主力卖出_D|成交额_D|实际流通_D|实际换手',
+            '涨停原因|涨停原因个股涨停个数|股票名称|股票代码|板块|连板数|涨停时间_D|融资融券|回封|振幅|连板标签|封单_D|最大封单_D|主力净额_D|主力买入_D|主力卖出|主力卖出_D|成交额_D|实际流通_D|实际换手',
           ),
           mapping(value: any, record: any) {
             if (
@@ -162,7 +162,7 @@ function DemonStockList() {
             }
             if (record.query && record.query['股票代码']) {
               console.log(record.query['股票代码'], record.query['回封'], record.query['主力卖出'])
-              if (record.query['回封'] === 1 || record.query['主力卖出'] < -50000000) {
+              if (record.query['回封'] == 1 || record.query['主力卖出'] < -50000000) {
                 return {
                   fill: '#eefbbe',
                 };
@@ -203,7 +203,7 @@ function DemonStockList() {
         '实际换手',
       ],
       //   columns: ['type'],
-      values: ['-'],
+      values: ['主力卖出'],
     },
     meta: [
       {
