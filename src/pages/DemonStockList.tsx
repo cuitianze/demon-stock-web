@@ -234,6 +234,7 @@ function DemonStockList() {
         '连板标签',
         '融资融券',
         '回封',
+        '主力卖出',
         '主力卖出_D',
         '主力买入_D',
         '振幅',
@@ -289,7 +290,7 @@ function DemonStockList() {
       },
       {
         field: '主力卖出_D',
-        name: '主力卖出',
+        name: '主力卖出_D',
       },
       {
         field: '成交额_D',
