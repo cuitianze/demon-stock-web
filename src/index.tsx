@@ -14,17 +14,14 @@ const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement,
 );
 
-if (btoa(localStorage.getItem('RICH')) === 'U3VwZXJNYW5QS1la') {
-  root.render(
-    <div>无效访问</div>
-  );
-  return;
-}
-
 root.render(
   <React.StrictMode>
     <ConfigProvider locale={locale}>
+    {
+      btoa(localStorage.getItem('RICH')) === 'U3VwZXJNYW5QS1la' ?
       <App />
+      : <div>无效访问</div>
+    }
     </ConfigProvider>
   </React.StrictMode>,
 );
