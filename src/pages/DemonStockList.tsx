@@ -448,7 +448,8 @@ function DemonStockList() {
           }}
           onLinkFieldJump={data => {
             const code = data.record['股票代码'];
-            window.open(`http://stockpage.10jqka.com.cn/${code}`);
+            window.open(`https://stockpage.10jqka.com.cn/${code}`);
+            window.open(`https://quote.eastmoney.com/${code}.html`);
           }}
         />
       </div>
