@@ -2,7 +2,7 @@ import axios from 'axios';
 
 const http = axios.create({
   // baseURL: 'http://127.0.0.1:7001',
-  baseURL: 'http://nas8.site:37001',
+  baseURL: '/',
 });
 
 // Add a request interceptor
