@@ -159,16 +159,16 @@ function DemonStockList() {
                   fill: '#e3f1e5',
                 };
               } 
-              if (record.query && record.query['股票代码'])
-                if (record.query['回封'] === 1 || record.query['主力卖出'] < -50000000) {
-                  return {
-                    fill: '#eefbbe',
-                  };
-                }
+            }
+            if (record.query && record.query['股票代码']) {
+              if (record.query['回封'] === 1 || record.query['主力卖出'] < -50000000) {
                 return {
-                  fill: '#f8dddd',
+                  fill: '#eefbbe',
                 };
               }
+              return {
+                fill: '#f8dddd',
+              };
             }
           },
         },
