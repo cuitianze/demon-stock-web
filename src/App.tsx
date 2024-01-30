@@ -11,7 +11,7 @@ function App() {
   useEffect(() => {
     if (stateClearClickTimes >= 2) {
       localStorage.removeItem(RICH_PWD);
-      location.reload();
+      window.location.reload();
     }
   }, [stateClearClickTimes]);
 
@@ -33,7 +33,7 @@ function App() {
                     placeholder="Password (confirm)" 
                     onBlur={(e) => {
                       localStorage.setItem(RICH_PWD, 'SuperMan' + e.target.value);
-                      location.reload();
+                      window.location.reload();
                     }}
                   />
                   :null
