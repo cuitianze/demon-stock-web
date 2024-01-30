@@ -160,16 +160,17 @@ function DemonStockList() {
               } 
             }
             if (record.query && record.query['股票代码']) {
-              console.log(record.query['股票代码'], record.query['回封'], record.query['主力卖出'])
-              if (record.query['回封'] == 1 || record.query['主力卖出'] < -50000000) {
+              console.log(record, record.query['股票代码'], record.query['回封'], record.query['主力卖出'])
+              if (record.query['回封'] == 1 || Number(record.query['主力卖出']) < -50000000) {
                 return {
                   fill: '#eefbbe',
                 };
-              }
-              if (stateCompareStockCodeList.length) {
-                return {
-                  fill: '#f8dddd',
-                };
+              } else {
+                if (stateCompareStockCodeList.length) {
+                  return {
+                    fill: '#f8dddd',
+                  };
+                }
               }
             }
           },
@@ -190,6 +191,7 @@ function DemonStockList() {
         '涨停时间_D',
         '融资融券',
         '回封',
+        '主力卖出',
         '振幅',
         '连板标签',
         '封单_D',
