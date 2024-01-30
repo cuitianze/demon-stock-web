@@ -1,10 +1,13 @@
 import {useState, useEffect} from 'react';
-import {Checkbox, DatePicker} from 'antd';
+import {Checkbox, DatePicker, Input} from 'antd';
 import type {DatePickerProps, GetProp} from 'antd';
 import {SheetComponent} from '@antv/s2-react';
 import '@antv/s2-react/dist/style.min.css';
 import dayjs from 'dayjs';
 import http from '../utils/http';
+import {SearchProps} from 'antd/lib/input';
+
+const {Search} = Input;
 
 // date 代表指定的日期，格式：2018-09-27
 // day 传-1表始前一天，传1表始后一天
@@ -24,6 +27,7 @@ function DemonStockList() {
   const [stateFilterOptions, setStateFilterOptions] = useState<number[]>(
     JSON.parse(localStorage.getItem('stateFilterOptions') || '[]'),
   );
+  const [stateFilterSearch, setStateFilterSearch] = useState<string>('');
   const [stateDate, setStateDate] = useState<string>();
   const [stateDataList, setStateDataList] = useState<any[]>([]);
   const [stateCompareDate, setStateCompareDate] = useState<string>();
@@ -99,7 +103,17 @@ function DemonStockList() {
     return () => {};
   }, [stateCompareDate]);
 
+  // 数据过滤条件
   useEffect(() => {
+    // 如果直接搜索某只股票，就不管其他条件
+    if (stateFilterSearch) {
+      setFilterDataList(
+        stateDataList.filter(item =>
+          item['股票名称'].includes(stateFilterSearch),
+        ),
+      );
+      return;
+    }
     setFilterDataList(
       stateDataList.filter(item => {
         if (!stateFilterOptions.length) return true;
@@ -109,7 +123,7 @@ function DemonStockList() {
         return stateFilterOptions.includes(item['连板数']);
       }),
     );
-  }, [stateDataList, stateFilterOptions]);
+  }, [stateDataList, stateFilterOptions, stateFilterSearch]);
 
   // 对比数据
   useEffect(() => {
@@ -295,6 +309,10 @@ function DemonStockList() {
     data: filterDataList,
   };
 
+  const onSearch: SearchProps['onSearch'] = (value, _e, info) => {
+    setStateFilterSearch(value);
+  };
+
   return (
     <div
       style={{
@@ -363,6 +381,12 @@ function DemonStockList() {
           style={{
             float: 'right',
           }}>
+          <Search
+            placeholder="stock name"
+            onSearch={onSearch}
+            style={{width: 200}}
+          />
+          &nbsp;
           <span>对比日期：</span>
           <DatePicker
             value={
