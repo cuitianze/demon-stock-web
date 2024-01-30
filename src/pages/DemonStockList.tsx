@@ -158,6 +158,10 @@ function DemonStockList() {
                 return {
                   fill: '#e3f1e5',
                 };
+              } if (record.query['回封'] === 1 || record.query['主力卖出'] < -50000000) {
+                return {
+                  fill: '#eefbbe',
+                };
               } else {
                 return {
                   fill: '#f8dddd',
@@ -317,8 +321,7 @@ function DemonStockList() {
           style={{
             position: 'fixed',
             top: 0,
-            left: '50%',
-            transform: 'translateX(-50%)',
+            left: '60%',
           }}>
           <span
             style={{
