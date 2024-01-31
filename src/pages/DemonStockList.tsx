@@ -6,6 +6,7 @@ import '@antv/s2-react/dist/style.min.css';
 import dayjs from 'dayjs';
 import http from '../utils/http';
 import {SearchProps} from 'antd/lib/input';
+import {DataCell} from '@antv/s2';
 
 const {Search} = Input;
 
@@ -158,6 +159,19 @@ function DemonStockList() {
     {label: '6板及以上', value: 6},
   ];
 
+  class CustomDataCell extends DataCell {
+    // 重写绘制背景方法, 添加一个背景图片
+    drawBackgroundShape() {
+      const code = this.meta.data['股票代码'];
+      this.backgroundShape = this.addShape('image', {
+        attrs: {
+          ...this.getCellArea(),
+          img: `/public/stock_img/${code}-${stateDate}.png`,
+        },
+      });
+    }
+  }
+
   const s2Options = {
     width: 2500,
     height: 1200,
@@ -165,6 +179,18 @@ function DemonStockList() {
     interaction: {
       linkFields: ['股票代码'],
       hoverHighlight: true,
+    },
+    dataCell: (viewMeta: any) => {
+      if (
+        viewMeta &&
+        viewMeta.data &&
+        viewMeta.data['股票代码'] &&
+        viewMeta.valueField === '分时'
+      ) {
+        return new CustomDataCell(viewMeta, viewMeta?.spreadsheet);
+      } else {
+        return new DataCell(viewMeta, viewMeta?.spreadsheet);
+      }
     },
     conditions: {
       text: [
@@ -227,6 +253,7 @@ function DemonStockList() {
       rows: ['涨停原因', '涨停原因个股涨停个数', '股票名称'],
       // columns: ['type'],
       values: [
+        '分时',
         '股票代码',
         '涨停时间_D',
         '板块',
@@ -308,7 +335,12 @@ function DemonStockList() {
         },
       },
     ],
-    data: filterDataList,
+    data: filterDataList.map(item => {
+      return {
+        ...item,
+        分时: '',
+      };
+    }),
   };
 
   const onSearch: SearchProps['onSearch'] = (value, _e, info) => {
