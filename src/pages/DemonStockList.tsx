@@ -159,6 +159,27 @@ function DemonStockList() {
     {label: '6板及以上', value: 6},
   ];
 
+  const isRecommended = (record: any) => {
+    if (!record) return;
+    if (Number(record['连板数']) > 1) {
+      if (
+        Number(record['回封']) !== 1 &&
+        Number(record['振幅']) > 3 &&
+        Number(record['主力卖出']) > -50000000
+      ) {
+        return true;
+      }
+    } else {
+      if (
+        Number(record['振幅']) > 3 &&
+        Number(record['主力卖出']) > -50000000
+      ) {
+        return true;
+      }
+    }
+    return false;
+  };
+
   class CustomDataCell extends DataCell {
     // 重写绘制背景方法, 添加一个背景图片
     drawBackgroundShape() {
@@ -219,6 +240,7 @@ function DemonStockList() {
           ),
           mapping(value: any, record: any) {
             if (!record) return;
+            // 比较的股票里有这个股票，显示红色，代表涨停
             if (record['股票代码'] && stateCompareStockCodeList.length) {
               if (!stateCompareStockCodeList.includes(record['股票代码'])) {
                 return {
@@ -227,10 +249,7 @@ function DemonStockList() {
               }
             }
             if (record && record['股票代码']) {
-              if (
-                Number(record['回封']) === 1 ||
-                Number(record['主力卖出']) < -50000000
-              ) {
+              if (!isRecommended(record)) {
                 return {
                   fill: '#eefbbe',
                 };
@@ -254,6 +273,7 @@ function DemonStockList() {
       // columns: ['type'],
       values: [
         '分时',
+        '推荐',
         '股票代码',
         '涨停时间_D',
         '板块',
@@ -334,10 +354,20 @@ function DemonStockList() {
           return value ? `${value}%` : '';
         },
       },
+      {
+        field: '推荐',
+        name: '推荐',
+        formatter: (record: any) => {
+          if (isRecommended(record)) {
+            return '✔️';
+          }
+        },
+      },
     ],
     data: filterDataList.map(item => {
       return {
         ...item,
+        推荐: item,
         分时: '',
       };
     }),
