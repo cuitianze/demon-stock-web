@@ -13,14 +13,37 @@ const {Search} = Input;
 // date 代表指定的日期，格式：2018-09-27
 // day 传-1表始前一天，传1表始后一天
 // JS获取指定日期的前一天，后一天
-const getNextDate = (date: string, day: number) => {
+const getNextDate = async (
+  date: string,
+  day: number,
+  trade?: boolean,
+): Promise<string> => {
   const dd = new Date(date);
   dd.setDate(dd.getDate() + day);
   const y = dd.getFullYear();
   const m =
     dd.getMonth() + 1 < 10 ? '0' + (dd.getMonth() + 1) : dd.getMonth() + 1;
   const d = dd.getDate() < 10 ? '0' + dd.getDate() : dd.getDate();
-  return y + '-' + m + '-' + d;
+  const newDate = y + '-' + m + '-' + d;
+  if (trade) {
+    if (!(await isTradeDate(newDate))) {
+      return getNextDate(newDate, day, trade);
+    }
+    return newDate;
+  } else {
+    return newDate;
+  }
+};
+
+// 判断是否是交易日
+const isTradeDate = (date: string): Promise<boolean> => {
+  return http.get(`/api/is_trade_date?date=${date}`).then(res => {
+    if (res) {
+      const data: boolean = res.data;
+      return data;
+    }
+    return false;
+  });
 };
 
 function DemonStockList() {
@@ -39,6 +62,7 @@ function DemonStockList() {
   const [stateCompareStockNameList, setStateCompareStockNameList] = useState<
     string[]
   >([]);
+  const [stateWatchDate, setStateWatchDate] = useState<string[]>([]);
 
   const onDateChange: DatePickerProps['onChange'] = (date, dateString) => {
     setStateDate(dateString);
@@ -55,6 +79,23 @@ function DemonStockList() {
   ) => {
     setStateFilterOptions(checkedValues);
     localStorage.setItem('stateFilterOptions', JSON.stringify(checkedValues));
+  };
+
+  const getAfter5Days = async (stateDate: string) => {
+    // 包括今天就是6个交易日
+    const watchDate = [];
+    let p = 0;
+    while (watchDate.length <= 5) {
+      const findDate = await getNextDate(stateDate, p);
+      if (new Date(findDate) > new Date()) {
+        break;
+      }
+      if (await isTradeDate(findDate)) {
+        watchDate.push(findDate);
+      }
+      p = p + 1;
+    }
+    setStateWatchDate(watchDate);
   };
 
   useEffect(() => {
@@ -82,6 +123,8 @@ function DemonStockList() {
       .finally(function () {
         // always executed
       });
+
+    getAfter5Days(stateDate);
 
     return () => {};
   }, [stateDate]);
@@ -183,11 +226,13 @@ function DemonStockList() {
   class CustomDataCell extends DataCell {
     // 重写绘制背景方法, 添加一个背景图片
     drawBackgroundShape() {
+      if (!stateDate) return;
       const code = this.meta.data['股票代码'];
+      const date = this.meta.valueField;
       this.backgroundShape = this.addShape('image', {
         attrs: {
           ...this.getCellArea(),
-          img: `/public/stock_img/${code}-${stateDate}.png`,
+          img: `/public/stock_img/${code}-${date}.png`,
         },
       });
     }
@@ -206,7 +251,7 @@ function DemonStockList() {
         viewMeta &&
         viewMeta.data &&
         viewMeta.data['股票代码'] &&
-        viewMeta.valueField === '分时'
+        stateWatchDate.includes(viewMeta.valueField)
       ) {
         return new CustomDataCell(viewMeta, viewMeta?.spreadsheet);
       } else {
@@ -267,12 +312,25 @@ function DemonStockList() {
     },
   };
 
+  const watchDateObj: {[string: string]: any} = {};
+  stateWatchDate.forEach((date: string) => {
+    watchDateObj[date] = '';
+  });
+
+  const renderData = filterDataList.map(item => {
+    return {
+      ...item,
+      推荐: item,
+      ...watchDateObj,
+    };
+  });
+
   const s2DataConfig = {
     fields: {
       rows: ['涨停原因', '涨停原因个股涨停个数', '股票名称'],
       // columns: ['type'],
       values: [
-        '分时',
+        ...stateWatchDate,
         '推荐',
         '股票代码',
         '涨停时间_D',
@@ -363,14 +421,12 @@ function DemonStockList() {
           }
         },
       },
+      ...stateWatchDate.map(date => ({
+        field: date,
+        name: date.replace(`${new Date().getFullYear()}-`, ''),
+      })),
     ],
-    data: filterDataList.map(item => {
-      return {
-        ...item,
-        推荐: item,
-        分时: '',
-      };
-    }),
+    data: renderData,
   };
 
   const onSearch: SearchProps['onSearch'] = (value, _e, info) => {
@@ -415,12 +471,14 @@ function DemonStockList() {
             style={{
               cursor: 'pointer',
             }}
-            onClick={() => {
+            onClick={async () => {
               if (stateDate) {
-                setStateDate(getNextDate(stateDate, -1));
+                setStateDate(await getNextDate(stateDate, -1, true));
               }
               if (stateCompareDate) {
-                setStateCompareDate(getNextDate(stateCompareDate, -1));
+                setStateCompareDate(
+                  await getNextDate(stateCompareDate, -1, true),
+                );
               }
             }}>
             前一天
@@ -430,12 +488,14 @@ function DemonStockList() {
             style={{
               cursor: 'pointer',
             }}
-            onClick={() => {
+            onClick={async () => {
               if (stateDate) {
-                setStateDate(getNextDate(stateDate, 1));
+                setStateDate(await getNextDate(stateDate, 1, true));
               }
               if (stateCompareDate) {
-                setStateCompareDate(getNextDate(stateCompareDate, 1));
+                setStateCompareDate(
+                  await getNextDate(stateCompareDate, 1, true),
+                );
               }
             }}>
             后一天
