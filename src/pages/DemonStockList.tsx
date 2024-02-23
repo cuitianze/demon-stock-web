@@ -333,7 +333,7 @@ function DemonStockList() {
         ...stateWatchDate,
         '推荐',
         '股票代码',
-        '涨停时间_D',
+        '涨停时间',
         '板块',
         '连板数',
         '连板标签',
@@ -364,10 +364,11 @@ function DemonStockList() {
         },
       },
       {
-        field: '涨停时间_D',
+        field: '涨停时间',
         name: '涨停时间',
         formatter: (value: any) => {
-          return value && value.split(' ')[1];
+          // "2/23/2024, 1:20:48 PM"
+          return value && new Date(value).toLocaleString().split(', ')[1];
         },
       },
       {
