@@ -1,5 +1,5 @@
 import {useCallback, useEffect, useRef, useState} from 'react';
-import {DatePicker, Switch} from 'antd';
+import {DatePicker, Input, Switch} from 'antd';
 import http from '../utils/http';
 import loadingUrl from '../static/loading.png';
 
@@ -56,6 +56,7 @@ function SelectStock() {
   const [stateDateRange, setStateDateRange] = useState<Array<unknown>>([0, 0]);
   const [stateIsRise, setStateIsRise] = useState<Boolean>(true);
   const [stateIsMoreThanAvg, setStateIsMoreThanAvg] = useState<Boolean>(true);
+  const [stateStockCode, setStateStockCode] = useState<string>('');
 
   const requestSelectStock = useCallback(async () => {
     if (!stateDateRange[0]) return;
@@ -65,7 +66,11 @@ function SelectStock() {
       isMoreThanAvg: stateIsMoreThanAvg,
       type: 'king',
       //   px_change_rate: [0, 3],
+      code: stateStockCode,
     };
+    if (stateStockCode) {
+      delete params.type;
+    }
     const res = await http.post('/api/select_stock', params);
     if (res && res.data) {
       const list = res.data[0];
@@ -75,7 +80,7 @@ function SelectStock() {
       setStateStockList([]);
       setStateCount(0);
     }
-  }, [stateDateRange, stateIsMoreThanAvg, stateIsRise]);
+  }, [stateDateRange, stateIsMoreThanAvg, stateIsRise, stateStockCode]);
 
   useEffect(() => {
     requestSelectStock();
@@ -107,6 +112,16 @@ function SelectStock() {
             setStateIsMoreThanAvg(checked);
           }}
         />
+        <span style={{display: 'inline-block'}}>
+          <Input
+            value={stateStockCode}
+            onChange={e => {
+              const {value: inputValue} = e.target;
+              setStateStockCode(inputValue);
+            }}
+            allowClear
+          />
+        </span>
         <span style={{float: 'right'}}>{stateCount}</span>
       </div>
 
@@ -117,14 +132,19 @@ function SelectStock() {
           const stock_url = `https://quote.eastmoney.com/${full_code}.html`;
           return (
             <div
-              key={stock.code}
+              key={stock.code + stock.date}
               style={{
                 display: 'inline-block',
                 width: '24%',
                 margin: '4px',
               }}>
               <span>
-                {stock.name} ({stock.code})
+                {stock.name}
+                <span
+                  style={{cursor: 'pointer'}}
+                  onClick={() => setStateStockCode(stock.code)}>
+                  ({stock.code})
+                </span>
               </span>
               <a href={stock_url} target="_blank" rel="noreferrer">
                 <LazyLoadImage src={stock_img} alt={stock.name} />
