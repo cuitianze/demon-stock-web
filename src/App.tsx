@@ -1,6 +1,19 @@
 import {useState, useEffect} from 'react';
 import './App.css';
 import DemonStockList from './pages/DemonStockList';
+import {createBrowserRouter, RouterProvider} from 'react-router-dom';
+import SelectStock from './pages/SelectStock';
+
+const router = createBrowserRouter([
+  {
+    path: '/',
+    element: <DemonStockList />,
+  },
+  {
+    path: '/select',
+    element: <SelectStock />,
+  },
+]);
 
 const RICH_PWD = 'RICH_PWD';
 
@@ -17,33 +30,39 @@ function App() {
 
   return (
     <div className="App">
-      {
-        btoa(localStorage.getItem(RICH_PWD) || '') === 'U3VwZXJNYW5QS1la' ?
-          <DemonStockList />
-          :
-          (
-            <div style={{ textAlign: 'center' }}>
-              <div onClick={() => {
-                setStateClickTimes(stateClickTimes+1);
-              }}>404</div>
-              {
-                stateClickTimes >= 8 ?
-                  <input 
-                    type="password"
-                    placeholder="Password (confirm)" 
-                    onBlur={(e) => {
-                      localStorage.setItem(RICH_PWD, 'SuperMan' + e.target.value);
-                      window.location.reload();
-                    }}
-                  />
-                  :null
-              }
-            </div>
-          )
-      }
-      <div style={{ width: '20px', height: '20px', position: 'fixed', right: 0, bottom: 0}} onClick={() => {
-        setStateClearClickTimes(stateClearClickTimes+1);
-      }}></div>
+      {btoa(localStorage.getItem(RICH_PWD) || '') === 'U3VwZXJNYW5QS1la' ? (
+        <RouterProvider router={router} />
+      ) : (
+        <div style={{textAlign: 'center'}}>
+          <div
+            onClick={() => {
+              setStateClickTimes(stateClickTimes + 1);
+            }}>
+            404
+          </div>
+          {stateClickTimes >= 8 ? (
+            <input
+              type="password"
+              placeholder="Password (confirm)"
+              onBlur={e => {
+                localStorage.setItem(RICH_PWD, 'SuperMan' + e.target.value);
+                window.location.reload();
+              }}
+            />
+          ) : null}
+        </div>
+      )}
+      <div
+        style={{
+          width: '20px',
+          height: '20px',
+          position: 'fixed',
+          right: 0,
+          bottom: 0,
+        }}
+        onClick={() => {
+          setStateClearClickTimes(stateClearClickTimes + 1);
+        }}></div>
     </div>
   );
 }
