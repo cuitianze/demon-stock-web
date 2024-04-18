@@ -1,6 +1,6 @@
 import {useCallback, useEffect, useRef, useState} from 'react';
-import http from '../utils/http';
 import {DatePicker, Switch} from 'antd';
+import http from '../utils/http';
 import loadingUrl from '../static/loading.png';
 
 const {RangePicker} = DatePicker;
@@ -117,6 +117,7 @@ function SelectStock() {
           const stock_url = `https://quote.eastmoney.com/${full_code}.html`;
           return (
             <div
+              key={stock.code}
               style={{
                 display: 'inline-block',
                 width: '24%',
@@ -125,11 +126,7 @@ function SelectStock() {
               <span>
                 {stock.name} ({stock.code})
               </span>
-              <a
-                key={stock.code}
-                href={stock_url}
-                target="_blank"
-                rel="noreferrer">
+              <a href={stock_url} target="_blank" rel="noreferrer">
                 <LazyLoadImage src={stock_img} alt={stock.name} />
               </a>
             </div>
