@@ -3,6 +3,7 @@ import './App.css';
 import DemonStockList from './pages/DemonStockList';
 import {createBrowserRouter, RouterProvider} from 'react-router-dom';
 import SelectStock from './pages/SelectStock';
+import RefreshQueue from './pages/RefreshQueue';
 
 const router = createBrowserRouter([
   {
@@ -12,6 +13,10 @@ const router = createBrowserRouter([
   {
     path: '/select',
     element: <SelectStock />,
+  },
+  {
+    path: '/refresh',
+    element: <RefreshQueue />,
   },
 ]);
 
