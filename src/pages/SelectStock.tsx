@@ -129,7 +129,9 @@ function SelectStock() {
         {stateStockList.map((stock: any) => {
           const full_code = (/^6/.test(stock.code) ? 'sh' : 'sz') + stock.code;
           const stock_img = img_url + full_code + '.gif';
-          const stock_url = `https://quote.eastmoney.com/${full_code}.html`;
+          const stock_url_dc = `https://quote.eastmoney.com/${full_code}.html`;
+          const stock_url_ths = `https://stockpage.10jqka.com.cn/${stock.code}`;
+
           return (
             <div
               key={stock.code + stock.date}
@@ -146,9 +148,13 @@ function SelectStock() {
                   ({stock.code})
                 </span>
               </span>
-              <a href={stock_url} target="_blank" rel="noreferrer">
+              <span
+                onClick={() => {
+                  window.open(stock_url_dc);
+                  window.open(stock_url_ths);
+                }}>
                 <LazyLoadImage src={stock_img} alt={stock.name} />
-              </a>
+              </span>
             </div>
           );
         })}
